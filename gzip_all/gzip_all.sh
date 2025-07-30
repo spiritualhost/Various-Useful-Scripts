@@ -14,5 +14,6 @@ for file in *; do
     [ -f "$file" ] || continue
 
     echo "$file is being zipped"
+    
     tar -czf "$file.tar.gz" "$file"
 done
