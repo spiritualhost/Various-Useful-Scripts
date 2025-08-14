@@ -1,2 +1,5 @@
 #Ignore testing scripts
 testing/
+
+#Ignore actual links
+openai_invoices/test.txt
