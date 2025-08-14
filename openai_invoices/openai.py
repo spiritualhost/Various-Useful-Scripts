@@ -1,7 +1,12 @@
 import pandas as pd
 from datetime import datetime
-import ast, asyncio, os
-from playwright.async_api import async_playwright
+import ast, asyncio, os, time
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
 
 
 #Convert date given by user to an integer
@@ -11,33 +16,41 @@ def datestringToDatetime(position: str):
     return datetimeFormatted
 
 
+
 #Download invoice by following provided link
-async def invoiceGrabbed(link: str, price: str, date: str, invoice: str, saveFolder: str):
+def invoiceGrabbed(link: str, price: str, date: str, invoice: str, saveFolder: str):
 
-    filename = f"{date} OpenAI {invoice} {price}.pdf"
 
-    #Click download button on Stripe page
-    async with async_playwright() as p:
+    options = Options()
+    options.headless = True
 
-        firefox = await p.firefox.launch(headless=False)
-        
-        #Create a browser context that accepts downloads
-        context = await firefox.new_context(accept_downloads=True)
-        page = await context.new_page()
-        
-        await page.goto(link)
+    # Configure Firefox profile to download PDFs automatically
+    profile = webdriver.FirefoxProfile()
+    profile.set_preference("browser.download.folderList", 2)  # use custom folder
+    profile.set_preference("browser.download.dir", os.path.join(os.path.expanduser("~"), "Downloads"))
+    profile.set_preference("browser.helperApps.neverAsk.saveToDisk", "application/pdf")
+    profile.set_preference("pdfjs.disabled", True)  # disable built-in PDF viewer
 
-        # Wait for the download triggered by the button
-        async with page.expect_download() as download_info:
-            await page.get_by_role("button", name="Download invoice").click()
+    # Attach profile to options
+    options.profile = profile
 
-        download = await download_info.value
+    # Launch browser
+    driver = webdriver.Firefox(options=options)
+    driver.get(link)
 
-        # Save with a custom filename
-        filename = f"{date} OpenAI {invoice} {price}.pdf"
-        await download.save_as(os.path.join(saveFolder, filename))
+    # Click the download button
+    download_button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable(
+            (By.XPATH, "//button[.//span[contains(text(),'Download invoice')]]")
+        )
+    )
+    download_button.click()
 
-        await firefox.close()
+    # Wait a few seconds to allow the download to start
+    time.sleep(5)
+
+    driver.quit()
+
 
 
 #Main body of script
@@ -73,21 +86,7 @@ if __name__ == "__main__":
         quit()
 
 
-    #Invoice number is at the first spot, price is at the third, date the fourth
-
-    #Paste the following code into the console in the browser after inspecting the page:
-    #const tds = Array.from(document.querySelectorAll("td"));
-
-    #const tdTexts = tds.map(td => {
-    #    const link = td.querySelector("a.lkCln");
-    #    return link ? link.href : td.textContent.trim();
-    #});
-    #
-    #console.log(tdTexts);
-
-    #The javascript will output an array. Copy and paste the object into "test.txt" above. 
-
-
+    #Paste the JS output into test.txt before this (preferably before the script runs)
 
     with open("test.txt", "r") as f:
         rawString = f.read()
@@ -122,19 +121,6 @@ if __name__ == "__main__":
         #Links
         elif "stripe.com" in rawList[i]:
             rawData["link"].append(rawList[i])
-
-
-
-    #Testing
-
-    #print(rawData["invoice"])
-    #print(rawData["price"])
-    #print(rawData["date"])
-    #print(rawData["link"])
-
-    with open("fortestingpurposes.txt", "w") as f:
-        for i in range(len(rawData["date"])):
-            f.write(f"At index {i}: {rawData["date"][i]} \n")
 
 
 
@@ -198,7 +184,7 @@ if __name__ == "__main__":
 
 
     for i in range(len(links)):
-        asyncio.run(invoiceGrabbed(links[i], prices[i], dates[i], invoices[i], newpath))
+        invoiceGrabbed(links[i], prices[i], dates[i], invoices[i], newpath)
 
         progress = str(done*(i+1)) + str(todo*(len(links)-(i+1)))
         print("Progress: ", progress, f"{round(((i+1)*100)/len(links), 2)}% complete")
