@@ -1,6 +1,6 @@
 import pandas as pd
 from datetime import datetime
-import ast, asyncio, os, time
+import ast, os, time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
@@ -47,9 +47,11 @@ def invoiceGrabbed(link: str, price: str, date: str, invoice: str, saveFolder: s
     download_button.click()
 
     # Wait a few seconds to allow the download to start
-    time.sleep(5)
+    time.sleep(10)
 
     driver.quit()
+
+
 
 
 
@@ -182,9 +184,16 @@ if __name__ == "__main__":
     fullbar = str(todo*len(links))
     print("Progress: ", fullbar)
 
+    starttime = datetime.now()
+    print(starttime)
 
     for i in range(len(links)):
         invoiceGrabbed(links[i], prices[i], dates[i], invoices[i], newpath)
-
-        progress = str(done*(i+1)) + str(todo*(len(links)-(i+1)))
+        
+        progress = str(done*(i+1)) + str(todo*(len(links)-(i+1)))        
         print("Progress: ", progress, f"{round(((i+1)*100)/len(links), 2)}% complete")
+
+    endtime = datetime.now()
+    print(endtime)
+
+    print("This operation took ", endtime-starttime)
