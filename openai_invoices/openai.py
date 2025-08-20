@@ -16,7 +16,6 @@ def datestringToDatetime(position: str):
     return datetimeFormatted
 
 
-
 #Download invoice by following provided link
 def invoiceGrabbed(link: str, price: str, date: str, invoice: str, saveFolder: str):
 
@@ -50,6 +49,8 @@ def invoiceGrabbed(link: str, price: str, date: str, invoice: str, saveFolder: s
     time.sleep(10)
 
     driver.quit()
+
+
 
 
 
