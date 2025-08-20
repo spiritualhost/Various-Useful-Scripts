@@ -55,10 +55,6 @@ def invoiceGrabbed(link: str):
 #Give the function the previously sliced lists and traverse them backwards (the most recently downloaded PDF will be the last one in the list, the most recent)
 def renameRecent(prices: list, dates: list, invoices: list):
     
-    print(prices)
-    print(dates)
-    print(invoices)
-
     #Get downloads folder (cross-platform), then get list of all applicable PDFs in the download folder
     downloads_path = os.path.expanduser("~/Downloads")
 
@@ -68,18 +64,13 @@ def renameRecent(prices: list, dates: list, invoices: list):
     print(pdfs)
 
     for i in range(len(invoices)):
-        print(invoices[i])
         for j in range(len(pdfs)):
             if invoices[i] in pdfs[j]:
                 os.rename(pdfs[j], os.path.join(downloads_path, f"{dates[i]} OpenAI Invoice {invoices[i]} {prices[i]}.pdf"))
                 break
 
-    #for i in range(len(pdfs)):
-    #    os.rename(pdfs[i], os.path.join(downloads_path, f"{dates[i]} OpenAI Invoice {invoices[i]} {prices[i]}.pdf"))
-
     return 0
     
-
 
 #Main body of script
 
