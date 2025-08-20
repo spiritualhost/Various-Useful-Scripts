@@ -21,7 +21,9 @@ def invoiceGrabbed(link: str, price: str, date: str, invoice: str, saveFolder: s
 
 
     options = Options()
-    options.headless = True
+    options.add_argument("--headless")
+    #Think this below deprecated
+    #options.headless = True
 
     # Configure Firefox profile to download PDFs automatically
     profile = webdriver.FirefoxProfile()
