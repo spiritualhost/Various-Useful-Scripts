@@ -1,6 +1,6 @@
 import pandas as pd
 from datetime import datetime
-import ast, os, time
+import ast, os, time, glob
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
@@ -17,13 +17,11 @@ def datestringToDatetime(position: str):
 
 
 #Download invoice by following provided link
-def invoiceGrabbed(link: str, price: str, date: str, invoice: str, saveFolder: str):
+def invoiceGrabbed(link: str):
 
 
     options = Options()
     options.add_argument("--headless")
-    #Think this below deprecated
-    #options.headless = True
 
     # Configure Firefox profile to download PDFs automatically
     profile = webdriver.FirefoxProfile()
@@ -53,9 +51,34 @@ def invoiceGrabbed(link: str, price: str, date: str, invoice: str, saveFolder: s
     driver.quit()
 
 
+#Rename the most recently downloaded file with proper formatting
+#Give the function the previously sliced lists and traverse them backwards (the most recently downloaded PDF will be the last one in the list, the most recent)
+def renameRecent(prices: list, dates: list, invoices: list):
+    
+    print(prices)
+    print(dates)
+    print(invoices)
 
+    #Get downloads folder (cross-platform), then get list of all applicable PDFs in the download folder
+    downloads_path = os.path.expanduser("~/Downloads")
 
+    #get list of all applicable PDFs in the download folder
+    pdfs = [pdf for pdf in glob.glob(os.path.join(downloads_path, "*.pdf")) if "Invoice-" in pdf]
+    pdfs.sort(key=os.path.getmtime, reverse=True)
+    print(pdfs)
 
+    for i in range(len(invoices)):
+        print(invoices[i])
+        for j in range(len(pdfs)):
+            if invoices[i] in pdfs[j]:
+                os.rename(pdfs[j], os.path.join(downloads_path, f"{dates[i]} OpenAI Invoice {invoices[i]} {prices[i]}.pdf"))
+                break
+
+    #for i in range(len(pdfs)):
+    #    os.rename(pdfs[i], os.path.join(downloads_path, f"{dates[i]} OpenAI Invoice {invoices[i]} {prices[i]}.pdf"))
+
+    return 0
+    
 
 
 #Main body of script
@@ -140,7 +163,6 @@ if __name__ == "__main__":
 
         slice_a_list = [i for i in range(len(rawData["date"])-1) if (datetime.strptime(rawData["date"][i], "%b %d, %Y, %I:%M %p").date() - lastDate).days <= 0]
         slice_a = slice_a_list[0]
-        print(slice_a)
 
         #Doing the opposite for the earliest date (slice_b), which will be the value furthest along in the list that isn't earlier than the firstDate value
 
@@ -161,42 +183,42 @@ if __name__ == "__main__":
     links = rawData["link"][slice_a:slice_b]
 
 
-
-    #Create folder to download invoices to so Downloads isn't clogged up
-    try:
-        folderName = f"{datetime.today().strftime('%Y-%m-%d')}"
-        newpath = os.path.join(os.getcwd(), folderName)
-
-
-        if not os.path.exists(newpath):
-            os.makedirs(newpath)
-
-    except Exception as e:
-        print(f"Directory error: {e}")
-        quit()
-
-
     #The invoice.stripe.com links are accessible to anybody, signed in or not, because of the cryptography that goes into their generation
     #Selenium will headlessly open each of the invoice links, download to a folder, prenamed
 
-    print(links)
+    #Testing
+    #print(links)
+
+
+    #Get start time, helps tell how long the script runs for
+    starttime = datetime.now()
+
 
     #Create progress bar
     done = "#"
     todo = "~"
     fullbar = str(todo*len(links))
+    
+    
     print("Progress: ", fullbar)
 
-    starttime = datetime.now()
-    print(starttime)
-
     for i in range(len(links)):
-        invoiceGrabbed(links[i], prices[i], dates[i], invoices[i], newpath)
+        invoiceGrabbed(links[i])
         
         progress = str(done*(i+1)) + str(todo*(len(links)-(i+1)))        
         print("Progress: ", progress, f"{round(((i+1)*100)/len(links), 2)}% complete")
 
-    endtime = datetime.now()
-    print(endtime)
 
+
+    #Convert dates list to remove illegal characters
+    dates = [
+        datetime.strptime(d, "%b %d, %Y, %I:%M %p").strftime("%m-%d-%Y")
+        for d in rawData["date"][slice_a:slice_b]
+    ]
+
+    renameRecent(prices, dates, invoices)
+
+
+    #How long did the script run for
+    endtime = datetime.now()
     print("This operation took ", endtime-starttime)
