@@ -86,5 +86,8 @@ if ($v -or $verbose){
 
 #Send the output to a remote server as an api call
 elseif ($r -or $remote) {
-    Invoke-WebRequest "https://192.168.200.xxx:5000/eligible?hostname=rpiazza&parameters=test"
+    $hostname = "$env:COMPUTERNAME"
+    $parameters =  "$SBOOT$TPM$CPU$CORES$CLK$BIT$MEM$STOR"
+
+    Start-Process "https://192.168.200.xxx:5000/eligible?hostname=$hostname&parameters=$parameters"
 }
