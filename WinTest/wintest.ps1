@@ -1,7 +1,9 @@
 ﻿#Flags
 param(
     [switch]$v,
-    [switch]$verbose
+    [switch]$verbose,
+    [switch]$r,
+    [switch]$remote
 )
 
 #Set variables to base value (False)
@@ -80,4 +82,9 @@ if ($v -or $verbose){
         Write-Output "Memory (RAM): $MEM"
         Write-Output "Storage Capacity: $STOR"
     }
+}
+
+#Send the output to a remote server as an api call
+elseif ($r -or $remote) {
+    Invoke-WebRequest "https://192.168.200.xxx:5000/eligible?hostname=rpiazza&parameters=test"
 }
