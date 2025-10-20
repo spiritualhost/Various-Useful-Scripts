@@ -3,3 +3,8 @@ testing/
 
 #Ignore actual links
 openai_invoices/test.txt
+
+#Various
+openai_invoices/openai.spec
+openai_invoices/venv
+openai_invoices/build
