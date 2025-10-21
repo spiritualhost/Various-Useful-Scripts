@@ -13,10 +13,4 @@ A lot of scripts that are pretty raw and malleable, ready to be used for various
 
     ** This script works, but is messy and could really do with some refactoring. 
 
-    See the video demo here:
-
-    <br>
-    <video src="assets/howto_transcoded.mp4" controls width="640" height="360" type="video/mp4">
-    Your browser does not support the <code>video</code> tag.
-    </video>
-    <br>
+    See the video demo [here](assets/howto_transcoded.mp4).
